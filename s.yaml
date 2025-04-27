@@ -2,7 +2,7 @@ edition: 1.0.0
 name: component-test
 access: '{{ access }}'
 services:
-  cn-hangzhou-scraper2-func-gb9j3e17:
+  scraper3:
     component: fc
     actions:       
       pre-deploy: 
@@ -21,7 +21,7 @@ services:
         internetAccess: true
         ossMountConfig:
           mountPoints: []
-        name: scraper2
+        name: scraper3
       function:
         handler: index.handler
         timeout: 60
@@ -35,7 +35,7 @@ services:
         dependencies:
           pip:
             - ./code/requirements.txt
-        name: scraper2
+        name: scraper3
         codeUri: './code'
       triggers:
         - name: http
