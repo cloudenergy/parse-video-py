@@ -1,0 +1,45 @@
+edition: 1.0.0
+name: component-test
+access: '{{ access }}'
+services:
+  cn-hangzhou-scraper2-func-gb9j3e17:
+    component: fc
+    props:
+      region: cn-hangzhou
+      service:
+        logConfig:
+          enableRequestMetrics: true
+          enableInstanceMetrics: true
+          logBeginRule: DefaultRegex
+          project: serverless-cn-hangzhou-dcbc9164-5021-5573-8d76-8a143358fd7c
+          logstore: default-logs
+        role: acs:ram::1989751876514753:role/AliyunFcDefaultRole
+        internetAccess: true
+        ossMountConfig:
+          mountPoints: []
+        name: scraper2
+      function:
+        handler: index.handler
+        timeout: 60
+        diskSize: 512
+        instanceType: e1
+        runtime: python3.10
+        cpu: 1
+        instanceConcurrency: 5
+        memorySize: 1024
+        environmentVariables: {}
+        dependencies:
+          pip:
+            - ./code/requirements.txt
+        name: func-gb9j3e17
+        codeUri: './code'
+      triggers:
+        - name: http
+          description: ''
+          type: http
+          qualifier: LATEST
+          config:
+            methods:
+              - GET
+            authType: anonymous
+            disableURLInternet: false
