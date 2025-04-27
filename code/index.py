@@ -1,7 +1,7 @@
 import json
 import asyncio
 from urllib.parse import parse_qs
-from main import share_url_parse
+from parser import parse_video_share_url
 
 
 def handler(environ, start_response):
@@ -14,7 +14,7 @@ def handler(environ, start_response):
         
         # Run the async function in a synchronous context
         try:
-            result = asyncio.run(share_url_parse(url))
+            result = asyncio.run(parse_video_share_url(url))
             response_body = json.dumps(result).encode('utf-8')
             status = '200 OK'
         except Exception as e:
