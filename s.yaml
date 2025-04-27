@@ -4,6 +4,10 @@ access: '{{ access }}'
 services:
   cn-hangzhou-scraper2-func-gb9j3e17:
     component: fc
+    actions:       
+      pre-deploy: 
+        - run: pip install -r requirements.txt -t .
+          path: ./code
     props:
       region: cn-hangzhou
       service:
