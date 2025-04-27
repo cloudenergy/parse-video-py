@@ -3,7 +3,7 @@ from typing import Dict, List
 
 import fake_useragent
 import httpx
-from bs4 import BeautifulSoup
+from parsel import Selector
 
 from .base import BaseParser, VideoAuthor, VideoInfo
 
@@ -21,37 +21,20 @@ class MeiPai(BaseParser):
             response = await client.get(share_url, headers=headers)
             response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-        
-        # Get video URL from data-video attribute
-        video_bs64_elem = soup.select_one("#shareMediaBtn")
-        video_bs64 = video_bs64_elem.get('data-video', '') if video_bs64_elem else ''
+        sel = Selector(response.text)
+        video_bs64 = sel.css("#shareMediaBtn::attr(data-video)").get(default="")
         video_url = self.parse_video_bs64(video_bs64)
-        
-        # Get cover image
-        cover_url_elem = soup.select_one("#detailVideo img")
-        cover_url = cover_url_elem.get('src', '') if cover_url_elem else ''
-        
-        # Get title
-        title_elem = soup.select_one(".detail-cover-title")
-        title = title_elem.text.strip() if title_elem else ''
-        
-        # Get author info
-        uid_elem = soup.select_one(".detail-name a")
-        uid = uid_elem.get('href', '').split("/")[-1] if uid_elem else ''
-        
-        avatar_elem = soup.select_one(".detail-avatar")
-        avatar = "https:" + avatar_elem.get('src', '') if avatar_elem else ''
-        name = avatar_elem.get('alt', '') if avatar_elem else ''
 
         video_info = VideoInfo(
             video_url=video_url,
-            cover_url=cover_url,
-            title=title,
+            cover_url=sel.css("#detailVideo img::attr(src)").get(default=""),
+            title=sel.css(".detail-cover-title::text").get(default="").strip(),
             author=VideoAuthor(
-                uid=uid,
-                name=name,
-                avatar=avatar,
+                uid=sel.css(".detail-name a::attr(href)")
+                .get(default="")
+                .split("/")[-1],
+                name=sel.css(".detail-avatar::attr(alt)").get(default=""),
+                avatar="https:" + sel.css(".detail-avatar::attr(src)").get(default=""),
             ),
         )
         return video_info

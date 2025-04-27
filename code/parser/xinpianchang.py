@@ -2,7 +2,7 @@ import json
 
 import fake_useragent
 import httpx
-from bs4 import BeautifulSoup
+from parsel import Selector
 
 from .base import BaseParser, VideoAuthor, VideoInfo
 
@@ -22,9 +22,8 @@ class XinPianChang(BaseParser):
             response = await client.get(share_url, headers=headers)
             response.raise_for_status()
 
-        soup = BeautifulSoup(response.text, 'html.parser')
-        script_element = soup.select_one("script#__NEXT_DATA__")
-        json_text = script_element.string if script_element else "{}"
+        sel = Selector(response.text)
+        json_text = sel.css("script#__NEXT_DATA__::text").get()
         json_data = json.loads(json_text)
         data = json_data["props"]["pageProps"]["detail"]
 
