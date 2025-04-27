@@ -1,7 +1,7 @@
 import re
 
 import httpx
-from parsel import Selector
+from bs4 import BeautifulSoup
 
 from .base import BaseParser, VideoAuthor, VideoInfo
 
@@ -16,11 +16,16 @@ class LvZhou(BaseParser):
             response = await client.get(share_url, headers=self.get_default_headers())
             response.raise_for_status()
 
-        sel = Selector(response.text)
+        soup = BeautifulSoup(response.text, 'html.parser')
 
-        video_url = sel.css("video::attr(src)").get()
-        author_avatar = sel.css("a.avatar img::attr(src)").get()
-        video_cover_style = sel.css("div.video-cover::attr(style)").get(default="")
+        video_element = soup.select_one("video")
+        video_url = video_element.get('src') if video_element else None
+        
+        avatar_img = soup.select_one("a.avatar img")
+        author_avatar = avatar_img.get('src') if avatar_img else None
+        
+        video_cover = soup.select_one("div.video-cover")
+        video_cover_style = video_cover.get('style', '') if video_cover else ''
 
         cover_url = ""
         if video_cover_style:
@@ -28,8 +33,11 @@ class LvZhou(BaseParser):
             if match:
                 cover_url = match.group(1)
 
-        title = sel.css("div.status-title::text").get()
-        author_name = sel.css("div.nickname::text").get()
+        title_element = soup.select_one("div.status-title")
+        title = title_element.text if title_element else None
+        
+        author_name_element = soup.select_one("div.nickname")
+        author_name = author_name_element.text if author_name_element else None
 
         return VideoInfo(
             video_url=video_url,

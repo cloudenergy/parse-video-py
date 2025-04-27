@@ -2,7 +2,7 @@ import json
 import re
 
 import httpx
-from parsel import Selector
+from bs4 import BeautifulSoup
 
 from .base import BaseParser, VideoAuthor, VideoInfo
 
@@ -35,14 +35,19 @@ class AcFun(BaseParser):
         play_info_data = json.loads(play_info_text)
 
         # 解析用户信息
-        sel = Selector(response.text)
-        uid = (
-            sel.css("div.up-info > a.info-item1::attr(href)")
-            .get(default="")
-            .replace("/upPage/", "")
-        )
-        name = sel.css("div.up-info span.up-name::text").get(default="")
-        avatar = sel.css("div.up-info span.up-avatar > img::attr(src)").get(default="")
+        soup = BeautifulSoup(response.text, 'html.parser')
+        
+        # Extract uid from href attribute
+        up_info_link = soup.select_one('div.up-info > a.info-item1')
+        uid = up_info_link['href'].replace("/upPage/", "") if up_info_link and 'href' in up_info_link.attrs else ""
+        
+        # Extract name
+        name_elem = soup.select_one('div.up-info span.up-name')
+        name = name_elem.text if name_elem else ""
+        
+        # Extract avatar
+        avatar_elem = soup.select_one('div.up-info span.up-avatar > img')
+        avatar = avatar_elem['src'] if avatar_elem and 'src' in avatar_elem.attrs else ""
 
         video_info = VideoInfo(
             video_url=play_info_data["streams"][0]["playUrls"][0],

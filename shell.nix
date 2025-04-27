@@ -6,6 +6,7 @@ let
     annotated-types
     anyio
     black
+    beautifulsoup4
     certifi
     cfgv
     click
